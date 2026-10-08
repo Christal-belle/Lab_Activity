@@ -345,20 +345,21 @@ class _MenuScreenState extends State<MenuScreen> {
               ),
             )
           else
-            SliverList(
-              delegate: SliverChildListDelegate([
-                for (final item in visible)
-                  MenuTile(
-                    item: item,
-                    quantity: _qty[item.id] ?? 0,
-                    onAdd: () => _add(item),
-                  ),
-               ]),
-              ),
-            ],
-          );
-        }
-      ),
+            SliverList.builder(
+              itemCount: visible.length,
+              itemBuilder: (context, index) {
+                final item = visible[index];
+                return MenuTile(
+                  item: item,
+                  quantity: _qty[item.id] ?? 0,
+                  onAdd: () => _add(item),
+                );
+              },
+            ),
+          ],
+        );
+      }
+    ),
       bottomNavigationBar: CartBar(count: _count, total: _total, onOrder: _order),
     );
   }
