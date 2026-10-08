@@ -258,49 +258,55 @@ class _MenuScreenState extends State<MenuScreen> {
   Widget build(BuildContext context) {
     final visible = _visible;
     final promos = widget.items.where((item) => item.promo).toList();
-    final isTablet = MediaQuery.sizeOf(context).width > 600;
-
+    
     return Scaffold(
       appBar: AppBar(title: const Text('Menu')),
-      body: CustomScrollView(
-        slivers: [
-          const SliverToBoxAdapter(child: StoreHeader()),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: Gap.md),
-              child: SearchBar(
-                key: const Key('search-field'),
-                hintText: 'Cari menu…',
-                leading: const Icon(Icons.search),
-                onChanged: (value) => setState(() => _query = value),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final wide = constraints.maxWidth >= 600;
+
+        return CustomScrollView(
+          slivers: [
+            const SliverToBoxAdapter(child: StoreHeader()),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Gap.md),
+                child: SearchBar(
+                  key: const Key('search-field'),
+                  hintText: 'Cari menu…',
+                  leading: const Icon(Icons.search),
+                  onChanged: (value) => setState(() => _query = value),
+                ),
               ),
             ),
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: Gap.sm)),
-          SliverToBoxAdapter(
-            child: CategoryBar(
-              selected: _category,
-              onSelected: (category) => setState(() => _category = category),
+            const SliverToBoxAdapter(child: SizedBox(height: Gap.sm)),
+            SliverToBoxAdapter(
+              child: CategoryBar(
+                selected: _category,
+                onSelected: (category) => setState(() => _category = category),
+              ),
             ),
-          ),
           SliverToBoxAdapter(
             child: PromoStrip(first: promos[0], second: promos[1]),
           ),
-          if (isTablet)
+          if (wide)
             SliverPadding(
               padding: const EdgeInsets.all(Gap.md),
-              sliver: SliverGrid.count(
-                crossAxisCount: 4,
-                mainAxisSpacing: Gap.md,
-                crossAxisSpacing: Gap.md,
-                children: [
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 200,
+                  mainAxisSpacing: Gap.md,
+                  crossAxisSpacing: Gap.md,
+                  childAspectRatio: 0.75,
+                ),
+                delegate: SliverChildListDelegate([
                   for (final item in visible)
                     MenuCard(
                       item: item,
                       quantity: _qty[item.id] ?? 0,
                       onAdd: () => _add(item),
                     ),
-                ],
+                ]),
               ),
             )
           else
@@ -312,9 +318,11 @@ class _MenuScreenState extends State<MenuScreen> {
                     quantity: _qty[item.id] ?? 0,
                     onAdd: () => _add(item),
                   ),
-              ]),
-            ),
-        ],
+               ]),
+              ),
+            ],
+          );
+        }
       ),
       bottomNavigationBar: CartBar(count: _count, total: _total, onOrder: _order),
     );
@@ -586,19 +594,24 @@ class MenuCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              height: 110,
-              decoration: BoxDecoration(
-                color: cs.secondaryContainer,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              alignment: Alignment.center,
-              child: Icon(
-                iconFor(item.category),
-                size: 40,
-                color: cs.onSecondaryContainer,
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: cs.secondaryContainer,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                alignment: Alignment.center,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Icon(
+                    iconFor(item.category),
+                    size: 40,
+                    color: cs.onSecondaryContainer,
+                  ),
+                ),
               ),
             ),
+      
             const SizedBox(height: Gap.sm),
             Text(item.name, style: text.titleSmall),
             const SizedBox(height: Gap.xs),
